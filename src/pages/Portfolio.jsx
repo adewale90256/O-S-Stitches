@@ -1,0 +1,338 @@
+import { ArrowRight, X } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+
+/*
+ * ============================================================
+ * DEMO / PLACEHOLDER PORTFOLIO DATA
+ * ============================================================
+ * These projects are temporary examples used only to build
+ * and test the Portfolio page UI.
+ *
+ * They are NOT the designer's actual completed work.
+ *
+ * Replace these records with the designer's real portfolio
+ * projects when they are provided.
+ *
+ * Later this data will come from Firebase.
+ * ============================================================
+ */
+
+const demoPortfolioItems = [
+  {
+    id: "demo-portfolio-1",
+    title: "Royal Blue Agbada",
+    category: "Agbada",
+    year: "Demo",
+    image:
+      "https://www.demilamarie.com/cdn/shop/files/43BD8341-63B7-40DE-AC00-DF94C20981A6.jpg?v=1744653740&width=1445",
+  },
+  {
+    id: "demo-portfolio-2",
+    title: "Classic White Agbada",
+    category: "Traditional Wear",
+    year: "Demo",
+    image:
+      "https://i.etsystatic.com/25411016/r/il/48f9e3/5290963360/il_1588xN.5290963360_b161.jpg",
+  },
+  {
+    id: "demo-portfolio-3",
+    title: "Signature Blue",
+    category: "Custom Design",
+    year: "Demo",
+    image:
+      "https://i.etsystatic.com/25330852/r/il/515519/6302081499/il_fullxfull.6302081499_lzek.jpg",
+  },
+  {
+    id: "demo-portfolio-4",
+    title: "Modern Ceremonial",
+    category: "Ceremonial Wear",
+    year: "Demo",
+    image:
+      "https://www.demilamarie.com/cdn/shop/files/43BD8341-63B7-40DE-AC00-DF94C20981A6.jpg?v=1744653740&width=1445",
+  },
+  {
+    id: "demo-portfolio-5",
+    title: "Heritage Collection",
+    category: "Traditional Wear",
+    year: "Demo",
+    image:
+      "https://i.etsystatic.com/25411016/r/il/48f9e3/5290963360/il_1588xN.5290963360_b161.jpg",
+  },
+  {
+    id: "demo-portfolio-6",
+    title: "Contemporary Classic",
+    category: "Custom Design",
+    year: "Demo",
+    image:
+      "https://i.etsystatic.com/25330852/r/il/515519/6302081499/il_fullxfull.6302081499_lzek.jpg",
+  },
+];
+
+const categories = [
+  "All",
+  "Agbada",
+  "Traditional Wear",
+  "Ceremonial Wear",
+  "Custom Design",
+];
+
+function Portfolio() {
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [selectedItem, setSelectedItem] = useState(null);
+
+  const filteredItems =
+    activeCategory === "All"
+      ? demoPortfolioItems
+      : demoPortfolioItems.filter((item) => item.category === activeCategory);
+
+  return (
+    <>
+      {/* =====================================================
+          PAGE HERO
+      ====================================================== */}
+      <section className="bg-[#06151b]">
+        <div className="mx-auto max-w-7xl px-6 py-20 sm:py-24 lg:px-8 lg:py-28">
+          <div className="max-w-3xl">
+            <div className="mb-5 flex items-center gap-3">
+              <span className="h-px w-8 bg-[#d7ad55]" />
+
+              <span className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#d7ad55]">
+                Our Work
+              </span>
+            </div>
+
+            <h1 className="font-serif text-4xl leading-tight tracking-[-0.02em] text-white sm:text-5xl md:text-6xl">
+              A collection of
+              <br />
+              <span className="text-white/60">
+                work crafted with intention.
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-sm leading-6 text-white/55 sm:text-base sm:leading-7">
+              Explore selected pieces and custom creations that showcase our
+              approach to craftsmanship, detail, and timeless style.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* =====================================================
+          PORTFOLIO CONTENT
+      ====================================================== */}
+      <section className="bg-[#f8f6f0] py-16 sm:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          {/* Demo notice */}
+          <div className="mb-10 flex flex-col gap-3 border border-[#d7ad55]/30 bg-white px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#b58a32]">
+                Portfolio Preview
+              </p>
+
+              <p className="mt-1 text-xs leading-5 text-[#06151b]/50">
+                The projects shown here are demo placeholders used while the
+                website is being developed.
+              </p>
+            </div>
+
+            <span className="shrink-0 text-[9px] font-semibold uppercase tracking-[0.12em] text-[#06151b]/35">
+              Real work will be added later
+            </span>
+          </div>
+
+          {/* Category filters */}
+          <div className="mb-10 flex flex-wrap items-center gap-2">
+            {categories.map((category) => {
+              const isActive = activeCategory === category;
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  onClick={() => setActiveCategory(category)}
+                  className={`border px-4 py-2.5 text-[10px] font-semibold uppercase tracking-[0.12em] transition ${
+                    isActive
+                      ? "border-[#06151b] bg-[#06151b] text-white"
+                      : "border-[#06151b]/15 bg-white text-[#06151b]/60 hover:border-[#d7ad55] hover:text-[#06151b]"
+                  }`}
+                >
+                  {category}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Results count */}
+          <div className="mb-6 flex items-center justify-between">
+            <p className="text-[10px] uppercase tracking-[0.14em] text-[#06151b]/40">
+              {filteredItems.length}{" "}
+              {filteredItems.length === 1 ? "Project" : "Projects"}
+            </p>
+
+            <p className="text-[9px] uppercase tracking-[0.12em] text-[#06151b]/30">
+              O-S Stitches
+            </p>
+          </div>
+
+          {/* Portfolio grid */}
+          {filteredItems.length > 0 ? (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredItems.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setSelectedItem(item)}
+                  className="group block w-full text-left"
+                >
+                  <div className="relative aspect-4/5 overflow-hidden bg-[#e9e5db]">
+                    <img
+                      src={item.image}
+                      alt={`Demo placeholder - ${item.title}`}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-105"
+                    />
+
+                    {/* Overlay */}
+                    <div className="absolute inset-0 bg-linear-to-t from-[#06151b]/80 via-[#06151b]/10 to-transparent opacity-80" />
+
+                    {/* Demo badge */}
+                    <div className="absolute left-4 top-4 rounded-sm bg-[#06151b]/80 px-2.5 py-1.5 backdrop-blur-sm">
+                      <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[#d7ad55]">
+                        Demo
+                      </span>
+                    </div>
+
+                    {/* View project */}
+                    <div className="absolute bottom-5 left-5 right-5 flex translate-y-2 items-center justify-between opacity-0 transition duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.15em] text-white">
+                        View Project
+                      </span>
+
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full border border-white/40 text-white">
+                        <ArrowRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card information */}
+                  <div className="flex items-start justify-between gap-4 bg-white px-5 py-5">
+                    <div>
+                      <p className="text-[9px] font-semibold uppercase tracking-[0.16em] text-[#b58a32]">
+                        {item.category}
+                      </p>
+
+                      <h2 className="mt-2 font-serif text-xl text-[#06151b]">
+                        {item.title}
+                      </h2>
+                    </div>
+
+                    <span className="pt-1 text-[9px] uppercase tracking-[0.12em] text-[#06151b]/30">
+                      {item.year}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            /* Empty state */
+            <div className="border border-[#06151b]/10 bg-white px-6 py-20 text-center">
+              <p className="font-serif text-2xl text-[#06151b]">
+                No projects found
+              </p>
+
+              <p className="mx-auto mt-3 max-w-md text-xs leading-5 text-[#06151b]/45">
+                There are currently no portfolio projects in this category.
+              </p>
+
+              <button
+                type="button"
+                onClick={() => setActiveCategory("All")}
+                className="mt-6 border border-[#06151b]/20 px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#06151b] transition hover:border-[#d7ad55] hover:bg-[#d7ad55]"
+              >
+                View All Projects
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* =====================================================
+          PROJECT PREVIEW MODAL
+      ====================================================== */}
+      {selectedItem && (
+        <div
+          className="fixed inset-0 z-100 flex items-center justify-center bg-[#06151b]/80 p-4 backdrop-blur-sm"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div
+            className="relative max-h-[90vh] w-full max-w-4xl overflow-hidden bg-white"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {/* Close */}
+            <button
+              type="button"
+              onClick={() => setSelectedItem(null)}
+              className="absolute right-4 top-4 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-[#06151b]/80 text-white transition hover:bg-[#06151b]"
+              aria-label="Close project"
+            >
+              <X size={17} strokeWidth={1.8} />
+            </button>
+
+            <div className="grid max-h-[90vh] overflow-y-auto lg:grid-cols-2">
+              {/* Image */}
+              <div className="relative bg-[#e9e5db]">
+                <img
+                  src={selectedItem.image}
+                  alt={`Demo placeholder - ${selectedItem.title}`}
+                  className="h-full min-h-100 w-full object-cover"
+                />
+
+                <div className="absolute left-4 top-4 rounded-sm bg-[#06151b]/80 px-2.5 py-1.5 backdrop-blur-sm">
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.14em] text-[#d7ad55]">
+                    Demo Project
+                  </span>
+                </div>
+              </div>
+
+              {/* Details */}
+              <div className="flex flex-col justify-center px-7 py-10 sm:px-10 lg:px-12">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-[#b58a32]">
+                  {selectedItem.category}
+                </p>
+
+                <h2 className="mt-3 font-serif text-3xl leading-tight text-[#06151b] sm:text-4xl">
+                  {selectedItem.title}
+                </h2>
+
+                <div className="my-7 h-px w-full bg-[#06151b]/10" />
+
+                <p className="text-sm leading-6 text-[#06151b]/55">
+                  This is a temporary demonstration project used to showcase the
+                  Portfolio page layout.
+                </p>
+
+                <p className="mt-4 text-sm leading-6 text-[#06151b]/55">
+                  The designer's actual project description, images, materials,
+                  occasion, and other details will be added when the real
+                  portfolio content is provided.
+                </p>
+
+                <div className="mt-8">
+                  <span className="text-[9px] uppercase tracking-[0.15em] text-[#06151b]/35">
+                    Project status
+                  </span>
+
+                  <p className="mt-1 text-xs font-semibold uppercase tracking text-[#b58a32]">
+                    Placeholder / Demo
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+export default Portfolio;

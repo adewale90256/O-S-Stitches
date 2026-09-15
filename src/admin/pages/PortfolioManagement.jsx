@@ -249,7 +249,7 @@ function PortfolioManagement() {
       {/* LOADING */}
 
       {loading ? (
-        <div className="flex min-h-[300px] items-center justify-center rounded-lg border border-slate-200 bg-white">
+        <div className="flex min-h-75 items-center justify-center rounded-lg border border-slate-200 bg-white">
           <div className="flex flex-col items-center">
             <LoaderCircle size={25} className="animate-spin text-[#d7ad55]" />
 

@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, MessageCircle } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
-import { demoCatalogueItems } from "../data/catalogue";
+import { useEffect, useState } from "react";
+import { getCatalogueItemBySlug } from "../lib/catalogue";
 
 // ============================================================
 // DEMO / PLACEHOLDER DATA
@@ -12,15 +13,46 @@ import { demoCatalogueItems } from "../data/catalogue";
 function CatalogueDetails() {
   const { slug } = useParams();
 
-  const item = demoCatalogueItems.find(
-    (catalogueItem) => catalogueItem.slug === slug,
-  );
+  const [item, setItem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState("");
+  const [imageVisible, setImageVisible] = useState(true);
+
+  useEffect(() => {
+    async function loadItem() {
+      try {
+        setLoading(true);
+        setError("");
+
+        const catalogueItem = await getCatalogueItemBySlug(slug);
+
+        setItem(catalogueItem);
+        setSelectedImage(catalogueItem.image);
+      } catch (err) {
+        console.error("Failed to load catalogue item:", err);
+        setError("Unable to load catalogue item.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadItem();
+  }, [slug]);
 
   // ==========================================================
   // ITEM NOT FOUND
   // ==========================================================
 
-  if (!item) {
+  if (loading) {
+    return (
+      <section className="flex min-h-[70vh] items-center justify-center bg-[#f8f6f0] px-6 py-20">
+        <p className="text-xs text-[#06151b]/45">Loading catalogue...</p>
+      </section>
+    );
+  }
+
+  if (error || !item) {
     return (
       <section className="min-h-[70vh] bg-[#f8f6f0] px-6 py-20">
         <div className="mx-auto flex max-w-xl flex-col items-center justify-center text-center">
@@ -33,8 +65,8 @@ function CatalogueDetails() {
           </h1>
 
           <p className="mt-4 text-sm leading-6 text-[#06151b]/50">
-            The catalogue piece you're looking for doesn't exist or may have
-            been removed.
+            {error ||
+              "The catalogue piece you're looking for doesn't exist or may have been removed."}
           </p>
 
           <Link
@@ -51,24 +83,6 @@ function CatalogueDetails() {
 
   return (
     <div className="min-h-screen bg-[#f8f6f0]">
-      {/* ======================================================
-          DEMO NOTICE
-      ====================================================== */}
-
-      <div className="border-b border-[#06151b]/10 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-3 lg:px-8">
-          <div className="flex items-center gap-3 text-[10px] text-[#06151b]/50">
-            <span className="rounded-full border border-[#d7ad55]/40 bg-[#d7ad55]/10 px-2.5 py-1 font-semibold uppercase tracking-[0.12em] text-[#9a7225]">
-              Preview content
-            </span>
-
-            <span>
-              This is temporary catalogue content for the website preview.
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* ======================================================
           BREADCRUMB
       ====================================================== */}
@@ -89,35 +103,58 @@ function CatalogueDetails() {
 
       <section className="mx-auto max-w-7xl px-6 py-8 lg:px-8 lg:py-12">
         <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
-          {/* ==================================================
-              IMAGE
-          ================================================== */}
-
+          {/* IMAGE */}
           <div>
             <div className="relative aspect-4/5 overflow-hidden bg-[#e9e5db]">
               <img
-                src={item.image}
-                alt={`Demo placeholder - ${item.name}`}
-                className="h-full w-full object-cover"
+                src={selectedImage || item.image}
+                alt={item.title}
+                className={`h-full w-full object-cover transition-opacity duration-500 ${
+                  imageVisible ? "opacity-100" : "opacity-0"
+                }`}
               />
-
-              <div className="absolute left-4 top-4">
-                <span className="rounded-full bg-[#06151b]/85 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-                  Demo
-                </span>
-              </div>
             </div>
 
-            <p className="mt-3 text-[9px] leading-4 text-[#06151b]/35">
-              Demo image used for interface development. Final photography will
-              be supplied by the designer.
-            </p>
+            {(item.gallery?.length > 0 || item.image) && (
+              <div className="mt-3 flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-4 sm:overflow-visible sm:pb-0">
+                {[item.image, ...(item.gallery || [])].map((image, index) => (
+                  <button
+                    key={`${image}-${index}`}
+                    type="button"
+                    onClick={() => {
+                      setImageVisible(false);
+
+                      setTimeout(() => {
+                        setSelectedImage(image);
+                        setImageVisible(true);
+                      }, 150);
+                    }}
+                    className={`group relative aspect-square w-24 shrink-0 overflow-hidden border bg-[#e9e5db] transition-all duration-300 sm:w-auto ${
+                      selectedImage === image
+                        ? "border-[#d7ad55] shadow-sm"
+                        : "border-transparent hover:border-[#06151b]/20"
+                    }`}
+                  >
+                    <img
+                      src={image}
+                      alt={`${item.title} ${index + 1}`}
+                      className={`h-full w-full object-cover transition duration-500 ${
+                        selectedImage === image
+                          ? "scale-[1.02]"
+                          : "group-hover:scale-105"
+                      }`}
+                    />
+
+                    {selectedImage === image && (
+                      <span className="absolute inset-x-0 bottom-0 h-0.5 bg-[#d7ad55]" />
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* ==================================================
-              INFORMATION
-          ================================================== */}
-
+          {/* INFORMATION */}
           <div className="flex flex-col justify-center">
             <div className="flex items-center gap-3">
               <span className="h-px w-8 bg-[#d7ad55]" />
@@ -128,23 +165,45 @@ function CatalogueDetails() {
             </div>
 
             <h1 className="mt-5 font-serif text-4xl leading-tight tracking-[-0.02em] text-[#06151b] sm:text-5xl">
-              {item.name}
+              {item.title}
             </h1>
 
             <p className="mt-6 text-sm leading-7 text-[#06151b]/55">
               {item.description}
             </p>
 
-            {/* ==================================================
-                CUSTOMIZATION
-            ================================================== */}
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              {item.priceType === "on-request" ? (
+                <span className="text-sm font-semibold text-[#06151b]">
+                  Price on request
+                </span>
+              ) : item.priceType === "starting" ? (
+                <span className="text-sm font-semibold text-[#06151b]">
+                  From ₦{Number(item.price || 0).toLocaleString()}
+                </span>
+              ) : (
+                <span className="text-sm font-semibold text-[#06151b]">
+                  ₦{Number(item.price || 0).toLocaleString()}
+                </span>
+              )}
+
+              <span
+                className={`rounded-full px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.12em] ${
+                  item.available
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-red-50 text-red-600"
+                }`}
+              >
+                {item.available ? "Available" : "Currently unavailable"}
+              </span>
+            </div>
 
             <div className="mt-8 border-y border-[#06151b]/10 py-6">
               <h2 className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#06151b]">
                 Customization
               </h2>
 
-              <div className="mt-5 space-y-3">
+              <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {[
                   "Fabric and colour selection",
                   "Personal measurements",
@@ -152,7 +211,7 @@ function CatalogueDetails() {
                   "Made specifically for your occasion",
                 ].map((feature) => (
                   <div key={feature} className="flex items-center gap-3">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#06151b]">
+                    <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#06151b]">
                       <Check
                         size={11}
                         strokeWidth={2}
@@ -160,15 +219,13 @@ function CatalogueDetails() {
                       />
                     </span>
 
-                    <span className="text-xs text-[#06151b]/60">{feature}</span>
+                    <span className="text-xs leading-5 text-[#06151b]/60">
+                      {feature}
+                    </span>
                   </div>
                 ))}
               </div>
             </div>
-
-            {/* ==================================================
-                CTA
-            ================================================== */}
 
             <div className="mt-8">
               <p className="text-xs leading-5 text-[#06151b]/45">

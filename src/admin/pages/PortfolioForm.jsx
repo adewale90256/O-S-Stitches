@@ -41,6 +41,7 @@ function PortfolioForm() {
   });
 
   const [preview, setPreview] = useState("");
+  const [imageFile, setImageFile] = useState(null);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(isEditing);
   const [error, setError] = useState("");
@@ -113,16 +114,10 @@ function PortfolioForm() {
 
     if (!file) return;
 
+    setImageFile(file);
+
     const imageUrl = URL.createObjectURL(file);
-
     setPreview(imageUrl);
-
-    // Temporary browser preview only.
-    // Firebase Storage will be connected next.
-    setForm((current) => ({
-      ...current,
-      image: imageUrl,
-    }));
   }
 
   function removeImage() {
@@ -152,13 +147,12 @@ function PortfolioForm() {
         priceType: form.priceType,
         price: form.priceType === "on-request" ? "" : form.price,
         featured: form.featured,
-        image: form.image,
       };
 
       if (isEditing) {
-        await updatePortfolioItem(id, portfolioData);
+        await updatePortfolioItem(id, portfolioData, imageFile);
       } else {
-        await createPortfolioItem(portfolioData);
+        await createPortfolioItem(portfolioData, imageFile);
       }
 
       navigate("/admin/portfolio");

@@ -1,85 +1,146 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDocs,
-  orderBy,
-  query,
-  serverTimestamp,
-  updateDoc,
-} from "firebase/firestore";
+import { auth } from "./firebase";
+import { sanityClient } from "./sanity";
+import { urlFor } from "./sanityImage";
 
-import { db } from "./firebase";
+/* -------------------------------------------------------
+   AUTHENTICATION
+------------------------------------------------------- */
 
-const portfolioCollection = collection(db, "portfolio");
+async function getAuthHeaders() {
+  const user = auth.currentUser;
+
+  if (!user) {
+    throw new Error("You must be signed in as an admin.");
+  }
+
+  const token = await user.getIdToken();
+
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+/* -------------------------------------------------------
+   GET PORTFOLIO ITEMS FROM SANITY
+------------------------------------------------------- */
 
 export async function getPortfolioItems() {
-  console.log("Getting portfolio items...");
+  const query = `
+    *[_type == "portfolio"] | order(_createdAt desc) {
+      _id,
+      title,
+      slug,
+      category,
+      description,
+      priceType,
+      price,
+      featured,
+      image
+    }
+  `;
 
-  const q = query(portfolioCollection, orderBy("createdAt", "desc"));
+  const items = await sanityClient.fetch(query);
 
-  const snapshot = await getDocs(q);
+  return items.map((item) => ({
+    ...item,
 
-  console.log("Portfolio items loaded:", snapshot.size);
+    // Keep the existing admin UI compatible
+    id: item._id,
 
-  return snapshot.docs.map((document) => ({
-    id: document.id,
-    ...document.data(),
+    // Convert Sanity image reference into a usable URL
+    image: item.image ? urlFor(item.image).width(1200).quality(85).url() : "",
   }));
 }
 
-export async function createPortfolioItem(data) {
-  console.log("Creating portfolio item...");
-  console.log("Data:", data);
-  console.log("About to send request to Firestore...");
+/* -------------------------------------------------------
+   CREATE PORTFOLIO ITEM
+------------------------------------------------------- */
 
-  try {
-    const firestoreRequest = addDoc(portfolioCollection, {
-      ...data,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
+export async function createPortfolioItem(data, imageFile) {
+  const headers = await getAuthHeaders();
 
-    const timeout = new Promise((_, reject) => {
-      setTimeout(() => {
-        reject(new Error("Firestore request timed out after 15 seconds."));
-      }, 15000);
-    });
+  const formData = new FormData();
 
-    const documentRef = await Promise.race([firestoreRequest, timeout]);
+  formData.append("title", data.title);
+  formData.append("category", data.category);
+  formData.append("description", data.description || "");
+  formData.append("priceType", data.priceType || "fixed");
+  formData.append("price", data.price ?? "");
+  formData.append("featured", String(data.featured ?? false));
 
-    console.log("Portfolio item created:", documentRef.id);
-
-    return documentRef.id;
-  } catch (error) {
-    console.error("FIRESTORE CREATE ERROR:", error);
-    console.error("Error code:", error.code);
-    console.error("Error message:", error.message);
-
-    throw error;
+  if (imageFile) {
+    formData.append("image", imageFile);
   }
-}
 
-export async function updatePortfolioItem(id, data) {
-  console.log("Updating portfolio item:", id);
-
-  const documentRef = doc(db, "portfolio", id);
-
-  await updateDoc(documentRef, {
-    ...data,
-    updatedAt: serverTimestamp(),
+  const response = await fetch("/api/portfolio", {
+    method: "POST",
+    headers,
+    body: formData,
   });
 
-  console.log("Portfolio item updated successfully");
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Unable to create portfolio item.");
+  }
+
+  return result;
 }
 
+/* -------------------------------------------------------
+   UPDATE PORTFOLIO ITEM
+------------------------------------------------------- */
+
+export async function updatePortfolioItem(id, data, imageFile) {
+  const headers = await getAuthHeaders();
+
+  const formData = new FormData();
+
+  formData.append("id", id);
+  formData.append("title", data.title);
+  formData.append("category", data.category);
+  formData.append("description", data.description || "");
+  formData.append("priceType", data.priceType || "fixed");
+  formData.append("price", data.price ?? "");
+  formData.append("featured", String(data.featured ?? false));
+
+  // Only send image when the admin selected a new one
+  if (imageFile) {
+    formData.append("image", imageFile);
+  }
+
+  const response = await fetch("/api/portfolio", {
+    method: "PUT",
+    headers,
+    body: formData,
+  });
+
+  const result = await response.json();
+
+  if (!response.ok) {
+    throw new Error(result.message || "Unable to update portfolio item.");
+  }
+
+  return result;
+}
+
+/* -------------------------------------------------------
+   DELETE PORTFOLIO ITEM
+------------------------------------------------------- */
+
 export async function deletePortfolioItem(id) {
-  console.log("Deleting portfolio item:", id);
+  const headers = await getAuthHeaders();
 
-  const documentRef = doc(db, "portfolio", id);
+  const response = await fetch(`/api/portfolio?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers,
+  });
 
-  await deleteDoc(documentRef);
+  const result = await response.json();
 
-  console.log("Portfolio item deleted successfully");
+  if (!response.ok) {
+    throw new Error(result.message || "Unable to delete portfolio item.");
+  }
+
+  return result;
 }

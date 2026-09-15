@@ -15,8 +15,10 @@ import ProtectedRoute from "./admin/components/ProtectedRoute";
 import AdminLayout from "./admin/components/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import PortfolioManagement from "./admin/pages/PortfolioManagement";
+import CataloguesManagement from "./admin/pages/CataloguesManagement";
 import AdminPlaceholder from "./admin/pages/AdminPlaceholder";
 import PortfolioForm from "./admin/pages/PortfolioForm";
+import CatalogueForm from "./admin/pages/CatalogueForm";
 import AgreementsManagement from "./admin/pages/AgreementsManagement";
 
 function PublicLayout() {
@@ -60,7 +62,10 @@ function App() {
 
             <Route path="portfolio/:id/edit" element={<PortfolioForm />} />
 
-            <Route path="catalogue" element={<AdminPlaceholder />} />
+            <Route path="catalogue" element={<CataloguesManagement />} />
+            <Route path="catalogue/new" element={<CatalogueForm />} />
+
+            <Route path="catalogue/:id/edit" element={<CatalogueForm />} />
 
             <Route path="agreements" element={<AgreementsManagement />} />
 

@@ -1,7 +1,7 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Search, SlidersHorizontal, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { demoCatalogueItems, catalogueCategories } from "../data/catalogue";
+import { getCatalogueItems } from "../lib/catalogue";
 
 // ============================================================
 // DEMO / PLACEHOLDER DATA
@@ -74,26 +74,50 @@ import { demoCatalogueItems, catalogueCategories } from "../data/catalogue";
 // ];
 
 function Catalogue() {
+  const [catalogueItems, setCatalogueItems] = useState([]);
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const filteredItems = useMemo(() => {
-    return demoCatalogueItems.filter((item) => {
-      const matchesCategory =
-        activeCategory === "All" || item.category === activeCategory;
+  useEffect(() => {
+    async function loadCatalogue() {
+      try {
+        setLoading(true);
+        setError("");
 
-      const searchTerm = search.trim().toLowerCase();
+        const items = await getCatalogueItems();
+        setCatalogueItems(items);
+      } catch (err) {
+        console.error("Failed to load catalogue:", err);
+        setError("Unable to load catalogue items.");
+      } finally {
+        setLoading(false);
+      }
+    }
 
-      const matchesSearch =
-        !searchTerm ||
-        item.name.toLowerCase().includes(searchTerm) ||
-        item.category.toLowerCase().includes(searchTerm) ||
-        item.description.toLowerCase().includes(searchTerm);
+    loadCatalogue();
+  }, []);
 
-      return matchesCategory && matchesSearch;
-    });
-  }, [activeCategory, search]);
+  const catalogueCategories = [
+    "All",
+    ...new Set(catalogueItems.map((item) => item.category).filter(Boolean)),
+  ];
+  const filteredItems = catalogueItems.filter((item) => {
+    const matchesCategory =
+      activeCategory === "All" || item.category === activeCategory;
+
+    const searchTerm = search.trim().toLowerCase();
+
+    const matchesSearch =
+      !searchTerm ||
+      item.title.toLowerCase().includes(searchTerm) ||
+      item.category.toLowerCase().includes(searchTerm) ||
+      (item.description || "").toLowerCase().includes(searchTerm);
+
+    return matchesCategory && matchesSearch;
+  });
 
   const clearFilters = () => {
     setActiveCategory("All");
@@ -127,24 +151,6 @@ function Catalogue() {
               fashion pieces. Each design can be tailored to your preferred
               style, fabric, and fit.
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ======================================================
-          DEMO NOTICE
-      ====================================================== */}
-      <section className="border-b border-[#06151b]/10 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-3 lg:px-8">
-          <div className="flex items-center gap-3 text-[10px] text-[#06151b]/50">
-            <span className="rounded-full border border-[#d7ad55]/40 bg-[#d7ad55]/10 px-2.5 py-1 font-semibold uppercase tracking-[0.12em] text-[#9a7225]">
-              Preview content
-            </span>
-
-            <span>
-              These catalogue items are temporary placeholders and will be
-              replaced with the designer's actual collection.
-            </span>
           </div>
         </div>
       </section>
@@ -237,7 +243,15 @@ function Catalogue() {
         {/* ====================================================
             PRODUCT GRID
         ==================================================== */}
-        {filteredItems.length > 0 ? (
+        {loading ? (
+          <div className="flex min-h-75 items-center justify-center">
+            <p className="text-xs text-[#06151b]/45">Loading catalogue...</p>
+          </div>
+        ) : error ? (
+          <div className="flex min-h-75 items-center justify-center border border-dashed border-[#06151b]/15 bg-white px-6 text-center">
+            <p className="text-xs text-red-500">{error}</p>
+          </div>
+        ) : filteredItems.length > 0 ? (
           <div className="grid grid-cols-1 gap-x-5 gap-y-10 sm:grid-cols-2 lg:grid-cols-3">
             {filteredItems.map((item) => (
               <article key={item.id} className="group">
@@ -245,16 +259,9 @@ function Catalogue() {
                   <div className="relative aspect-4/5 overflow-hidden bg-[#e9e5db]">
                     <img
                       src={item.image}
-                      alt={`Demo placeholder - ${item.name}`}
+                      alt={item.title}
                       className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.03]"
                     />
-
-                    {/* Demo badge */}
-                    <div className="absolute left-3 top-3">
-                      <span className="rounded-full bg-[#06151b]/85 px-2.5 py-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-white backdrop-blur-sm">
-                        Demo
-                      </span>
-                    </div>
 
                     {/* Hover overlay */}
                     <div className="absolute inset-x-0 bottom-0 translate-y-full bg-[#06151b]/90 p-4 transition-transform duration-300 group-hover:translate-y-0">
@@ -280,7 +287,7 @@ function Catalogue() {
                         </p>
 
                         <h3 className="mt-1 font-serif text-xl text-[#06151b]">
-                          {item.name}
+                          {item.title}
                         </h3>
                       </div>
 

@@ -59,7 +59,11 @@ function PortfolioManagement() {
   };
 
   useEffect(() => {
-    loadPortfolio();
+    async function load() {
+      await loadPortfolio();
+    }
+
+    load();
   }, []);
 
   // ==========================================================
@@ -316,7 +320,9 @@ function PortfolioManagement() {
                   </div>
 
                   <p className="shrink-0 text-[10px] font-semibold text-slate-700">
-                    {item.price || "On Request"}
+                    {item.price
+                      ? `₦${Number(item.price).toLocaleString("en-NG")}`
+                      : "On Request"}
                   </p>
                 </div>
 
@@ -410,7 +416,7 @@ function PortfolioManagement() {
 
       {selectedItem && (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+          className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
           onClick={() => setSelectedItem(null)}
         >
           <div
@@ -475,7 +481,7 @@ function PortfolioManagement() {
       {/* DELETE CONFIRMATION */}
 
       {deleteItem && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-110 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm">
           <div className="w-full max-w-sm rounded-lg bg-white p-5 shadow-2xl sm:p-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-50 text-red-600">
               <Trash2 size={17} />

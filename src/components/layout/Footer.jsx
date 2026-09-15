@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MessageCircle, Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
+import brand from "../../config/brand";
 
 const footerLinks = [
   { name: "Home", path: "/" },
@@ -18,19 +19,21 @@ function Footer() {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="inline-flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/80">
-                <span className="font-serif text-lg leading-none tracking-[-0.08em]">
-                  OS
-                </span>
+              <div className="flex items-center">
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="h-10 w-auto object-contain"
+                />
               </div>
 
               <div className="flex flex-col leading-none">
-                <span className="text-sm font-semibold tracking-[0.18em]">
-                  O-S
+                <span className="text-[9px] font-semibold tracking-[0.16em] text-white">
+                  {brand.name.split(" ")[0]}
                 </span>
 
-                <span className="mt-1 text-[8px] tracking-[0.3em] text-white/50">
-                  STITCHES
+                <span className="mt-0.5 text-[6px] tracking-[0.25em] text-white/60">
+                  {brand.name.split(" ").slice(1).join(" ")}
                 </span>
               </div>
             </Link>
@@ -193,7 +196,7 @@ function Footer() {
         </div>
 
         {/* CTA */}
-        <div className="mt-14 overflow-hidden rounded-lg border border-white/10 bg-white/[0.03]">
+        <div className="mt-14 overflow-hidden rounded-lg border border-white/10 bg-white/3">
           <div className="flex flex-col items-start justify-between gap-6 px-6 py-7 sm:flex-row sm:items-center lg:px-8">
             <div>
               <p className="font-serif text-xl text-white sm:text-2xl">

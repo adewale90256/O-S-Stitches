@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { Menu, X, Search, MessageCircle } from "lucide-react";
+import brand from "../../config/brand";
 
 const navItems = [
   { name: "Home", path: "/" },
@@ -14,7 +15,10 @@ function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-50 bg-[#06151b] text-white">
+    <header
+      className="sticky top-0 z-50 text-white"
+      style={{ backgroundColor: brand.colors.primary }}
+    >
       <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link
@@ -23,19 +27,22 @@ function Navbar() {
           className="flex shrink-0 items-center gap-2"
         >
           {/* OS Mark */}
-          <div className="flex h-8 w-8 items-center justify-center rounded-full border border-white/80">
-            <span className="font-serif text-[15px] leading-none tracking-[-0.08em]">
-              OS
-            </span>
+          <div className="flex items-center">
+            <img
+              src={brand.logo}
+              alt={brand.name}
+              className="h-10 w-auto object-contain"
+            />
           </div>
 
           {/* Brand Name */}
           <div className="flex flex-col leading-none">
             <span className="text-[9px] font-semibold tracking-[0.16em] text-white">
-              O-S
+              {brand.name.split(" ")[0]}
             </span>
+
             <span className="mt-0.5 text-[6px] tracking-[0.25em] text-white/60">
-              STITCHES
+              {brand.name.split(" ").slice(1).join(" ")}
             </span>
           </div>
         </Link>
@@ -57,7 +64,10 @@ function Navbar() {
                   {item.name}
 
                   {isActive && (
-                    <span className="absolute bottom-2 left-0 h-px w-full bg-[#d7ad55]" />
+                    <span
+                      className="absolute bottom-2 left-0 h-px w-full"
+                      style={{ backgroundColor: brand.colors.accent }}
+                    />
                   )}
                 </>
               )}
@@ -92,7 +102,10 @@ function Navbar() {
             href="https://wa.me/"
             target="_blank"
             rel="noreferrer"
-            className="ml-1 flex items-center rounded-md bg-[#d7ad55] px-3.5 py-2 text-[9px] font-semibold text-[#06151b] transition hover:bg-[#e5c275]"
+            className="ml-1 flex items-center rounded-md px-3.5 py-2 text-[9px] font-semibold text-[#06151b] transition"
+            style={{
+              backgroundColor: brand.colors.accent,
+            }}
           >
             Contact Us
           </a>
@@ -115,7 +128,10 @@ function Navbar() {
 
       {/* Mobile Navigation */}
       {mobileOpen && (
-        <div className="border-t border-white/10 bg-[#06151b] md:hidden">
+        <div
+          className="border-t border-white/10 md:hidden"
+          style={{ backgroundColor: brand.colors.primary }}
+        >
           <nav className="mx-auto flex max-w-7xl flex-col px-5 py-3">
             {navItems.map((item) => (
               <NavLink
@@ -136,7 +152,8 @@ function Navbar() {
               href="https://wa.me/"
               target="_blank"
               rel="noreferrer"
-              className="mt-4 flex items-center justify-center gap-2 rounded-md bg-[#d7ad55] px-5 py-3 text-xs font-semibold text-[#06151b]"
+              className="mt-4 flex items-center justify-center gap-2 rounded-md px-5 py-3 text-xs font-semibold text-[#06151b]"
+              style={{ backgroundColor: brand.colors.accent }}
             >
               <MessageCircle size={15} />
               Contact Us

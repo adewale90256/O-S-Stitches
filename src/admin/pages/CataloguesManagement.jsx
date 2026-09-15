@@ -50,7 +50,11 @@ function CataloguesManagement() {
   }
 
   useEffect(() => {
-    loadCatalogue();
+    async function load() {
+      await loadCatalogue();
+    }
+
+    load();
   }, []);
 
   async function handleDelete(id) {

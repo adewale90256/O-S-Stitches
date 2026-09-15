@@ -2,6 +2,7 @@ import { ArrowRight, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getSanityPortfolioItems } from "../lib/sanityPortfolio";
 import { urlFor } from "../lib/sanityImage";
+import { formatPrice } from "../lib/formatPrice";
 
 const categories = [
   "All",
@@ -178,6 +179,9 @@ function Portfolio() {
                       <h2 className="mt-2 font-serif text-xl text-[#06151b]">
                         {item.title}
                       </h2>
+                      <p className="mt-2 text-sm font-semibold text-[#06151b]">
+                        {formatPrice(item.price)}
+                      </p>
                     </div>
                   </div>
                 </button>

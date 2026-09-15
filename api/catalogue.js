@@ -7,6 +7,7 @@ import { getFirestore as getAdminFirestore } from "firebase-admin/firestore";
 
 import { createClient } from "@sanity/client";
 import crypto from "crypto";
+import process from "node:process";
 
 /* -------------------------------------------------------
    FIREBASE ADMIN
@@ -295,7 +296,7 @@ async function updateCatalogue(req, res) {
         ...image,
         _key: image._key || crypto.randomUUID(),
       }));
-    } catch (error) {
+    } catch {
       return res.status(400).json({
         message: "Invalid existing gallery data.",
       });

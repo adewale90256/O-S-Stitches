@@ -1,31 +1,49 @@
 import { ArrowRight, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
+import brand from "../../config/brand";
 
 function Hero() {
   return (
-    <section className="relative min-h-140 overflow-hidden bg-[#06151b] sm:min-h-150">
+    <section
+      className="relative min-h-140 overflow-hidden sm:min-h-150"
+      style={{ backgroundColor: brand.colors.primary }}
+    >
       {/* Hero Image */}
       <img
         src="/images/hero-fashion.jpg"
-        alt="O-S Stitches bespoke fashion"
+        alt={`${brand.name} bespoke fashion`}
         className="absolute inset-0 h-full w-full object-cover object-center"
       />
 
       {/* Dark Overlay */}
-      <div className="absolute inset-0 bg-[#06151b]/65" />
+      <div
+        className="absolute inset-0"
+        style={{ backgroundColor: `${brand.colors.primary}a6` }}
+      />
 
       {/* Left-side Gradient */}
-      <div className="absolute inset-0 bg-linear-to-r from-[#06151b] via-[#06151b]/80 to-transparent" />
+      <div
+        className="absolute inset-0 bg-linear-to-r via-transparent to-transparent"
+        style={{
+          background: `linear-gradient(to right, ${brand.colors.primary}, ${brand.colors.primary}cc, transparent)`,
+        }}
+      />
 
       {/* Content */}
       <div className="relative mx-auto flex min-h-140 max-w-7xl items-center px-6 py-20 sm:min-h-150 lg:px-8">
         <div className="max-w-2xl">
           {/* Eyebrow */}
           <div className="mb-5 flex items-center gap-3">
-            <span className="h-px w-8 bg-[#d7ad55]" />
+            <span
+              className="h-px w-8"
+              style={{ backgroundColor: brand.colors.accent }}
+            />
 
-            <span className="text-[10px] font-medium tracking-[0.22em] text-[#d7ad55] sm:text-xs">
-              CUSTOM FASHION
+            <span
+              className="text-[10px] font-medium tracking-[0.22em] sm:text-xs"
+              style={{ color: brand.colors.accent }}
+            >
+              {brand.tagline}
             </span>
 
             <span className="text-[10px] tracking-[0.15em] text-white/40 sm:text-xs">
@@ -51,7 +69,11 @@ function Hero() {
             {/* Primary */}
             <Link
               to="/portfolio"
-              className="inline-flex items-center justify-center gap-2 rounded-md bg-[#d7ad55] px-6 py-3.5 text-xs font-semibold text-[#06151b] transition hover:bg-[#e5c275]"
+              className="inline-flex items-center justify-center gap-2 rounded-md px-6 py-3.5 text-xs font-semibold transition"
+              style={{
+                backgroundColor: brand.colors.accent,
+                color: brand.colors.primary,
+              }}
             >
               View Our Work
               <ArrowRight size={15} strokeWidth={1.8} />
@@ -78,7 +100,12 @@ function Hero() {
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-20 bg-linear-to-t from-[#06151b]/40 to-transparent" />
+      <div
+        className="absolute bottom-0 left-0 right-0 h-20"
+        style={{
+          background: `linear-gradient(to top, ${brand.colors.primary}66, transparent)`,
+        }}
+      />
     </section>
   );
 }

@@ -1,4 +1,5 @@
 import { Gem, Palette, Ruler, Clock3 } from "lucide-react";
+import brand from "../../config/brand";
 
 const benefits = [
   {
@@ -25,9 +26,12 @@ const benefits = [
 
 function Benefits() {
   return (
-    <section className="border-b border-[#06151b]/10 bg-[#f8f6f0]">
+    <section
+      className="border-b border-black/10"
+      style={{ backgroundColor: brand.colors.background }}
+    >
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="grid divide-y divide-[#06151b]/10 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x lg:divide-[#06151b]/10">
+        <div className="grid divide-y divide-black/10 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x lg:divide-black/10">
           {benefits.map((benefit) => {
             const Icon = benefit.icon;
 
@@ -36,20 +40,29 @@ function Benefits() {
                 key={benefit.title}
                 className="flex items-start gap-4 px-0 py-7 sm:px-6 lg:px-7 lg:py-8"
               >
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#d7ad55]/50 bg-white">
+                <div
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border bg-white"
+                  style={{ borderColor: `${brand.colors.accent}80` }}
+                >
                   <Icon
                     size={18}
                     strokeWidth={1.5}
-                    className="text-[#b58a32]"
+                    style={{ color: brand.colors.accent }}
                   />
                 </div>
 
                 <div>
-                  <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-[#06151b]">
+                  <h3
+                    className="text-xs font-semibold uppercase tracking-[0.12em]"
+                    style={{ color: brand.colors.primary }}
+                  >
                     {benefit.title}
                   </h3>
 
-                  <p className="mt-2 text-xs leading-5 text-[#06151b]/50">
+                  <p
+                    className="mt-2 text-xs leading-5 opacity-50"
+                    style={{ color: brand.colors.primary }}
+                  >
                     {benefit.description}
                   </p>
                 </div>

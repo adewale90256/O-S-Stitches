@@ -1,624 +1,538 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { Search, Eye, FileSignature, ChevronDown, X } from "lucide-react";
-
-const demoAgreements = [
-  {
-    id: "AGR-001",
-    customer: "John Doe",
-    phone: "0803 123 4567",
-    email: "john@example.com",
-    item: "Custom Agbada",
-    amount: 250000,
-    status: "Pending",
-    date: "Sep 10, 2026",
-    occasion: "Wedding",
-    deliveryDate: "Oct 15, 2026",
-  },
-  {
-    id: "AGR-002",
-    customer: "Mary James",
-    phone: "0806 234 5678",
-    email: "mary@example.com",
-    item: "Wedding Outfit",
-    amount: 300000,
-    status: "Accepted",
-    date: "Sep 9, 2026",
-    occasion: "Wedding",
-    deliveryDate: "Oct 20, 2026",
-  },
-  {
-    id: "AGR-003",
-    customer: "David Paul",
-    phone: "0810 345 6789",
-    email: "david@example.com",
-    item: "Senator Wear",
-    amount: 200000,
-    status: "Rejected",
-    date: "Sep 7, 2026",
-    occasion: "Birthday",
-    deliveryDate: "Oct 10, 2026",
-  },
-  {
-    id: "AGR-004",
-    customer: "Sarah A.",
-    phone: "0705 456 7890",
-    email: "sarah@example.com",
-    item: "Native Wear",
-    amount: 180000,
-    status: "Pending",
-    date: "Sep 6, 2026",
-    occasion: "Traditional Ceremony",
-    deliveryDate: "Oct 5, 2026",
-  },
-  {
-    id: "AGR-005",
-    customer: "Emeka K.",
-    phone: "0902 567 8901",
-    email: "emeka@example.com",
-    item: "Custom Suit",
-    amount: 350000,
-    status: "Accepted",
-    date: "Sep 5, 2026",
-    occasion: "Corporate Event",
-    deliveryDate: "Sep 30, 2026",
-  },
-  {
-    id: "AGR-006",
-    customer: "Michael O.",
-    phone: "0809 678 9012",
-    email: "michael@example.com",
-    item: "Classic Agbada",
-    amount: 275000,
-    status: "Pending",
-    date: "Sep 4, 2026",
-    occasion: "Engagement",
-    deliveryDate: "Oct 12, 2026",
-  },
-];
-
-const filters = ["All", "Pending", "Accepted", "Rejected"];
-
-function formatCurrency(amount) {
-  return `₦${amount.toLocaleString()}`;
-}
-
-function statusClasses(status) {
-  if (status === "Accepted") {
-    return "bg-emerald-50 text-emerald-700 border-emerald-100";
-  }
-
-  if (status === "Rejected") {
-    return "bg-red-50 text-red-700 border-red-100";
-  }
-
-  return "bg-amber-50 text-amber-700 border-amber-100";
-}
+import { useEffect, useState } from "react";
+import {
+  Check,
+  Copy,
+  FileText,
+  LoaderCircle,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
+import {
+  createAgreement,
+  deleteAgreement,
+  getAgreements,
+} from "../../lib/agreements";
+import brand from "../../config/brand";
 
 function AgreementsManagement() {
-  const [agreements, setAgreements] = useState(demoAgreements);
-  const [activeFilter, setActiveFilter] = useState("All");
-  const [search, setSearch] = useState("");
-  const [selectedAgreement, setSelectedAgreement] = useState(null);
+  const [agreements, setAgreements] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredAgreements = useMemo(() => {
-    const query = search.trim().toLowerCase();
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-    return agreements.filter((agreement) => {
-      const matchesFilter =
-        activeFilter === "All" || agreement.status === activeFilter;
+  const [deletingId, setDeletingId] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
-      const matchesSearch =
-        !query ||
-        agreement.customer.toLowerCase().includes(query) ||
-        agreement.phone.toLowerCase().includes(query) ||
-        agreement.email.toLowerCase().includes(query) ||
-        agreement.id.toLowerCase().includes(query) ||
-        agreement.item.toLowerCase().includes(query);
+  const [notification, setNotification] = useState({
+    type: "",
+    message: "",
+  });
 
-      return matchesFilter && matchesSearch;
+  const [form, setForm] = useState({
+    customerName: "",
+    customerPhone: "",
+    customerEmail: "",
+    itemDescription: "",
+    price: "",
+  });
+
+  useEffect(() => {
+    loadAgreements();
+  }, []);
+
+  useEffect(() => {
+    if (!notification.message) return;
+
+    const timer = setTimeout(() => {
+      setNotification({
+        type: "",
+        message: "",
+      });
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [notification]);
+
+  async function loadAgreements() {
+    try {
+      setLoading(true);
+
+      const items = await getAgreements();
+
+      setAgreements(items);
+    } catch (error) {
+      console.error("Failed to load agreements:", error);
+
+      setNotification({
+        type: "error",
+        message: error.message || "Unable to load agreements.",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function handleChange(event) {
+    const { name, value } = event.target;
+
+    setForm((current) => ({
+      ...current,
+      [name]: value,
+    }));
+  }
+
+  function resetForm() {
+    setForm({
+      customerName: "",
+      customerPhone: "",
+      customerEmail: "",
+      itemDescription: "",
+      price: "",
     });
-  }, [agreements, activeFilter, search]);
+  }
 
-  function updateStatus(id, status) {
-    setAgreements((current) =>
-      current.map((agreement) =>
-        agreement.id === id
-          ? {
-              ...agreement,
-              status,
-            }
-          : agreement,
-      ),
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    if (saving) return;
+
+    try {
+      setSaving(true);
+
+      const result = await createAgreement(form);
+
+      setAgreements((current) => [result.agreement, ...current]);
+
+      resetForm();
+      setShowForm(false);
+
+      setNotification({
+        type: "success",
+        message: "Agreement created successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to create agreement:", error);
+
+      setNotification({
+        type: "error",
+        message: error.message || "Unable to create agreement.",
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function handleDelete(id) {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this agreement?",
     );
 
-    setSelectedAgreement((current) =>
-      current?.id === id
-        ? {
-            ...current,
-            status,
-          }
-        : current,
-    );
+    if (!confirmed) return;
+
+    try {
+      setDeletingId(id);
+
+      await deleteAgreement(id);
+
+      setAgreements((current) =>
+        current.filter((agreement) => agreement.id !== id),
+      );
+
+      setNotification({
+        type: "success",
+        message: "Agreement deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Failed to delete agreement:", error);
+
+      setNotification({
+        type: "error",
+        message: error.message || "Unable to delete agreement.",
+      });
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function copyAgreementLink(agreement) {
+    const link = `${window.location.origin}/agreement/${agreement.agreementToken}`;
+
+    try {
+      await navigator.clipboard.writeText(link);
+
+      setCopiedId(agreement.id);
+
+      setTimeout(() => {
+        setCopiedId(null);
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to copy agreement link:", error);
+
+      setNotification({
+        type: "error",
+        message: "Unable to copy agreement link.",
+      });
+    }
+  }
+
+  function formatCurrency(value) {
+    return `₦${Number(value || 0).toLocaleString("en-NG")}`;
+  }
+
+  function getStatusClasses(status) {
+    if (status === "accepted") {
+      return "bg-emerald-50 text-emerald-700";
+    }
+
+    if (status === "rejected") {
+      return "bg-red-50 text-red-600";
+    }
+
+    return "bg-amber-50 text-amber-700";
   }
 
   return (
-    <div className="px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        {/* Header */}
-        <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#b58a32]">
-              Customer Requests
-            </p>
+    <div className="space-y-8 p-8">
+      {/* Header */}
+      <div className="flex flex-col justify-between gap-5 sm:flex-row sm:items-end">
+        <div>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.2em]"
+            style={{ color: brand.colors.accent }}
+          >
+            Customer agreements
+          </p>
 
-            <h1 className="text-2xl font-semibold tracking-tight text-[#06151b]">
-              Agreements
-            </h1>
+          <h1
+            className="mt-2 text-2xl font-semibold tracking-tight"
+            style={{ color: brand.colors.primary }}
+          >
+            Agreements
+          </h1>
 
-            <p className="mt-1 text-sm text-slate-500">
-              Review and manage customer order agreements.
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-500">
-            <FileSignature size={15} />
-            {agreements.length} total agreements
-          </div>
-        </div>
-
-        {/* Development notice */}
-        <div className="mb-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
-          <p className="text-xs leading-5 text-amber-800">
-            <span className="font-semibold">Development preview:</span>{" "}
-            Agreement data is currently temporary mock data. This will later be
-            connected to Firebase/Firestore.
+          <p className="mt-2 max-w-xl text-sm text-slate-500">
+            Create and manage customer agreements before production begins.
           </p>
         </div>
 
-        {/* Controls */}
-        <div className="mb-5 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            {/* Search */}
-            <div className="relative w-full lg:max-w-md">
-              <Search
-                size={16}
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-              />
+        <button
+          type="button"
+          onClick={() => setShowForm((current) => !current)}
+          className="inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition"
+          style={{ backgroundColor: brand.colors.primary }}
+        >
+          {showForm ? <X size={15} /> : <Plus size={15} />}
+
+          {showForm ? "Close" : "New Agreement"}
+        </button>
+      </div>
+
+      {/* Notification */}
+      {notification.message && (
+        <div
+          className={`flex items-center gap-3 border px-4 py-3 text-sm ${
+            notification.type === "success"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+              : "border-red-200 bg-red-50 text-red-600"
+          }`}
+        >
+          {notification.type === "success" ? (
+            <Check size={16} />
+          ) : (
+            <X size={16} />
+          )}
+
+          {notification.message}
+        </div>
+      )}
+
+      {/* Create Form */}
+      {showForm && (
+        <form
+          onSubmit={handleSubmit}
+          className="border border-slate-200 bg-white p-6 shadow-sm"
+        >
+          <div className="mb-6">
+            <h2 className="text-base font-semibold text-slate-900">
+              Create Agreement
+            </h2>
+
+            <p className="mt-1 text-xs text-slate-500">
+              Enter the customer and order information below.
+            </p>
+          </div>
+
+          <div className="grid gap-5 md:grid-cols-2">
+            {/* Customer Name */}
+            <div>
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Customer Name
+              </label>
 
               <input
                 type="text"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search customer, phone, item or reference..."
-                className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-xs text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-[#d7ad55] focus:ring-2 focus:ring-[#d7ad55]/20"
+                name="customerName"
+                value={form.customerName}
+                onChange={handleChange}
+                required
+                placeholder="Customer full name"
+                className="w-full border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#d7ad55]"
               />
             </div>
 
-            {/* Filters */}
-            <div className="flex flex-wrap items-center gap-2">
-              {filters.map((filter) => {
-                const active = activeFilter === filter;
+            {/* Customer Phone */}
+            <div>
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                WhatsApp / Phone
+              </label>
 
-                return (
-                  <button
-                    key={filter}
-                    type="button"
-                    onClick={() => setActiveFilter(filter)}
-                    className={`rounded-lg border px-3.5 py-2 text-xs font-medium transition ${
-                      active
-                        ? "border-[#06151b] bg-[#06151b] text-white"
-                        : "border-slate-200 bg-white text-slate-500 hover:border-slate-300 hover:text-slate-700"
-                    }`}
-                  >
-                    {filter}
-                  </button>
-                );
-              })}
+              <input
+                type="tel"
+                name="customerPhone"
+                value={form.customerPhone}
+                onChange={handleChange}
+                required
+                placeholder="e.g. 08012345678"
+                className="w-full border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#d7ad55]"
+              />
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Email
+              </label>
+
+              <input
+                type="email"
+                name="customerEmail"
+                value={form.customerEmail}
+                onChange={handleChange}
+                placeholder="customer@example.com"
+                className="w-full border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#d7ad55]"
+              />
+            </div>
+
+            {/* Price */}
+            <div>
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Total Price (₦)
+              </label>
+
+              <input
+                type="number"
+                name="price"
+                value={form.price}
+                onChange={handleChange}
+                required
+                min="1"
+                placeholder="e.g. 500000"
+                className="w-full border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#d7ad55]"
+              />
+            </div>
+
+            {/* Item Description */}
+            <div className="md:col-span-2">
+              <label className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">
+                Order / Outfit Description
+              </label>
+
+              <textarea
+                name="itemDescription"
+                value={form.itemDescription}
+                onChange={handleChange}
+                required
+                rows={4}
+                placeholder="Describe the outfit or work being commissioned..."
+                className="w-full resize-none border border-slate-200 px-3 py-3 text-sm outline-none transition focus:border-[#d7ad55]"
+              />
             </div>
           </div>
-        </div>
 
-        {/* Result count */}
-        <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs text-slate-500">
-            Showing{" "}
-            <span className="font-semibold text-slate-700">
-              {filteredAgreements.length}
-            </span>{" "}
-            agreement
-            {filteredAgreements.length !== 1 ? "s" : ""}
-          </p>
+          {/* Payment Summary */}
+          {form.price && Number(form.price) > 0 && (
+            <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  Total
+                </p>
 
-          {(search || activeFilter !== "All") && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setActiveFilter("All");
-              }}
-              className="inline-flex items-center gap-1.5 text-xs font-medium text-[#b58a32] hover:text-[#8f6b27]"
-            >
-              <X size={13} />
-              Clear filters
-            </button>
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {formatCurrency(form.price)}
+                </p>
+              </div>
+
+              <div className="border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  70% Upfront
+                </p>
+
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {formatCurrency(Number(form.price) * 0.7)}
+                </p>
+              </div>
+
+              <div className="border border-slate-200 bg-slate-50 p-4">
+                <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  30% Balance
+                </p>
+
+                <p className="mt-1 text-lg font-semibold text-slate-900">
+                  {formatCurrency(Number(form.price) * 0.3)}
+                </p>
+              </div>
+            </div>
           )}
-        </div>
 
-        {/* Desktop table */}
-        <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm md:block">
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[850px] border-collapse">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-left">
-                  <th className="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Customer
-                  </th>
-
-                  <th className="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Item
-                  </th>
-
-                  <th className="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Amount
-                  </th>
-
-                  <th className="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Status
-                  </th>
-
-                  <th className="px-5 py-3.5 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Date
-                  </th>
-
-                  <th className="px-5 py-3.5 text-right text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredAgreements.map((agreement) => (
-                  <tr
-                    key={agreement.id}
-                    className="border-b border-slate-100 last:border-b-0"
-                  >
-                    <td className="px-5 py-4">
-                      <div>
-                        <p className="text-sm font-medium text-slate-800">
-                          {agreement.customer}
-                        </p>
-
-                        <p className="mt-0.5 text-[11px] text-slate-400">
-                          {agreement.phone}
-                        </p>
-                      </div>
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <p className="text-xs font-medium text-slate-700">
-                        {agreement.item}
-                      </p>
-
-                      <p className="mt-0.5 text-[10px] text-slate-400">
-                        {agreement.id}
-                      </p>
-                    </td>
-
-                    <td className="px-5 py-4 text-xs font-semibold text-slate-700">
-                      {formatCurrency(agreement.amount)}
-                    </td>
-
-                    <td className="px-5 py-4">
-                      <span
-                        className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-semibold ${statusClasses(
-                          agreement.status,
-                        )}`}
-                      >
-                        {agreement.status}
-                      </span>
-                    </td>
-
-                    <td className="px-5 py-4 text-xs text-slate-500">
-                      {agreement.date}
-                    </td>
-
-                    <td className="px-5 py-4 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setSelectedAgreement(agreement)}
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-[#d7ad55] hover:text-[#b58a32]"
-                      >
-                        <Eye size={14} />
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {filteredAgreements.length === 0 && <EmptyState />}
-        </div>
-
-        {/* Mobile cards */}
-        <div className="space-y-3 md:hidden">
-          {filteredAgreements.map((agreement) => (
-            <div
-              key={agreement.id}
-              className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+          {/* Submit */}
+          <div className="mt-6 flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className="inline-flex items-center gap-2 px-5 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition disabled:cursor-not-allowed disabled:opacity-60"
+              style={{ backgroundColor: brand.colors.primary }}
             >
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-slate-800">
-                    {agreement.customer}
-                  </p>
-
-                  <p className="mt-0.5 text-[11px] text-slate-400">
-                    {agreement.id}
-                  </p>
-                </div>
-
-                <span
-                  className={`shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold ${statusClasses(
-                    agreement.status,
-                  )}`}
-                >
-                  {agreement.status}
-                </span>
-              </div>
-
-              <div className="my-4 border-t border-slate-100" />
-
-              <div className="grid grid-cols-2 gap-y-4">
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Item
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-slate-700">
-                    {agreement.item}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Amount
-                  </p>
-                  <p className="mt-1 text-xs font-semibold text-slate-700">
-                    {formatCurrency(agreement.amount)}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Date
-                  </p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    {agreement.date}
-                  </p>
-                </div>
-
-                <div>
-                  <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                    Occasion
-                  </p>
-                  <p className="mt-1 text-xs text-slate-600">
-                    {agreement.occasion}
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setSelectedAgreement(agreement)}
-                className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2.5 text-xs font-medium text-slate-600 transition hover:border-[#d7ad55] hover:text-[#b58a32]"
-              >
-                <Eye size={14} />
-                View Agreement
-              </button>
-            </div>
-          ))}
-
-          {filteredAgreements.length === 0 && <EmptyState />}
-        </div>
-      </div>
-
-      {/* Agreement modal */}
-      {selectedAgreement && (
-        <AgreementModal
-          agreement={selectedAgreement}
-          onClose={() => setSelectedAgreement(null)}
-          onStatusChange={updateStatus}
-        />
+              {saving ? (
+                <>
+                  <LoaderCircle size={15} className="animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <FileText size={15} />
+                  Create Agreement
+                </>
+              )}
+            </button>
+          </div>
+        </form>
       )}
-    </div>
-  );
-}
 
-function EmptyState() {
-  return (
-    <div className="px-6 py-16 text-center">
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400">
-        <FileSignature size={21} />
-      </div>
+      {/* Agreements */}
+      <div className="border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-200 px-5 py-4">
+          <h2 className="text-sm font-semibold text-slate-900">
+            Customer Agreements
+          </h2>
+        </div>
 
-      <h3 className="mt-4 text-sm font-semibold text-slate-700">
-        No agreements found
-      </h3>
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <LoaderCircle
+              size={24}
+              className="animate-spin"
+              style={{ color: brand.colors.accent }}
+            />
+          </div>
+        ) : agreements.length === 0 ? (
+          <div className="px-5 py-16 text-center">
+            <FileText
+              size={30}
+              className="mx-auto text-slate-300"
+              strokeWidth={1.5}
+            />
 
-      <p className="mx-auto mt-1 max-w-sm text-xs leading-5 text-slate-400">
-        Try changing your search or clearing the current filters.
-      </p>
-    </div>
-  );
-}
-
-function AgreementModal({ agreement, onClose, onStatusChange }) {
-  return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-[#06151b]/60 p-4 backdrop-blur-sm"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white shadow-2xl">
-        {/* Modal header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white px-5 py-4 sm:px-6">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#b58a32]">
-              Agreement
+            <p className="mt-4 text-sm font-medium text-slate-700">
+              No agreements yet
             </p>
 
-            <h2 className="mt-1 text-lg font-semibold text-[#06151b]">
-              {agreement.id}
-            </h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Create your first customer agreement to get started.
+            </p>
           </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {agreements.map((agreement) => (
+              <div
+                key={agreement.id}
+                className="flex flex-col gap-5 px-5 py-5 lg:flex-row lg:items-center lg:justify-between"
+              >
+                {/* Customer */}
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h3 className="text-sm font-semibold text-slate-900">
+                      {agreement.customerName}
+                    </h3>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-            aria-label="Close"
-          >
-            <X size={18} />
-          </button>
-        </div>
+                    <span
+                      className={`rounded-full px-2.5 py-1 text-[9px] font-semibold uppercase tracking-[0.12em] ${getStatusClasses(
+                        agreement.status,
+                      )}`}
+                    >
+                      {agreement.status}
+                    </span>
+                  </div>
 
-        <div className="space-y-6 p-5 sm:p-6">
-          {/* Customer */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Customer
-            </h3>
+                  <p className="mt-1 text-xs text-slate-500">
+                    {agreement.customerPhone}
+                    {agreement.customerEmail
+                      ? ` • ${agreement.customerEmail}`
+                      : ""}
+                  </p>
 
-            <div className="grid gap-4 rounded-xl border border-slate-100 bg-slate-50 p-4 sm:grid-cols-2">
-              <Info label="Name" value={agreement.customer} />
-              <Info label="Phone" value={agreement.phone} />
-              <Info label="Email" value={agreement.email} />
-              <Info label="Occasion" value={agreement.occasion} />
-            </div>
-          </section>
+                  <p className="mt-2 max-w-xl text-xs leading-5 text-slate-600">
+                    {agreement.itemDescription}
+                  </p>
+                </div>
 
-          {/* Order */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Order Details
-            </h3>
+                {/* Payment */}
+                <div className="shrink-0">
+                  <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+                    Agreement Value
+                  </p>
 
-            <div className="overflow-hidden rounded-xl border border-slate-200">
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <span className="text-xs text-slate-500">Requested Item</span>
+                  <p className="mt-1 text-sm font-semibold text-slate-900">
+                    {formatCurrency(agreement.price)}
+                  </p>
 
-                <span className="text-xs font-medium text-slate-800">
-                  {agreement.item}
-                </span>
+                  <p className="mt-1 text-[10px] text-slate-500">
+                    70%: {formatCurrency(agreement.upfrontAmount)}
+                    {" • "}
+                    30%: {formatCurrency(agreement.balanceAmount)}
+                  </p>
+                </div>
+
+                {/* Actions */}
+                <div className="flex shrink-0 items-center gap-2">
+                  {agreement.status === "pending" &&
+                    agreement.agreementToken && (
+                      <button
+                        type="button"
+                        onClick={() => copyAgreementLink(agreement)}
+                        className="inline-flex items-center gap-2 border border-slate-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                      >
+                        {copiedId === agreement.id ? (
+                          <Check size={14} />
+                        ) : (
+                          <Copy size={14} />
+                        )}
+
+                        {copiedId === agreement.id ? "Copied" : "Copy Link"}
+                      </button>
+                    )}
+
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(agreement.id)}
+                    disabled={deletingId !== null}
+                    className="inline-flex items-center gap-2 border border-red-100 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-red-500 transition hover:border-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {deletingId === agreement.id ? (
+                      <LoaderCircle size={14} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={14} />
+                    )}
+
+                    {deletingId === agreement.id ? "Deleting..." : "Delete"}
+                  </button>
+                </div>
               </div>
-
-              <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
-                <span className="text-xs text-slate-500">Agreed Amount</span>
-
-                <span className="text-sm font-semibold text-slate-800">
-                  {formatCurrency(agreement.amount)}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between px-4 py-3">
-                <span className="text-xs text-slate-500">
-                  Expected Delivery
-                </span>
-
-                <span className="text-xs font-medium text-slate-800">
-                  {agreement.deliveryDate}
-                </span>
-              </div>
-            </div>
-          </section>
-
-          {/* Status */}
-          <section>
-            <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Agreement Status
-            </h3>
-
-            <div className="rounded-xl border border-slate-200 p-4">
-              <div className="flex flex-col gap-3 sm:flex-row">
-                <button
-                  type="button"
-                  onClick={() => onStatusChange(agreement.id, "Pending")}
-                  className={`flex-1 rounded-lg border px-4 py-2.5 text-xs font-semibold transition ${
-                    agreement.status === "Pending"
-                      ? "border-amber-200 bg-amber-50 text-amber-700"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  Pending
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onStatusChange(agreement.id, "Accepted")}
-                  className={`flex-1 rounded-lg border px-4 py-2.5 text-xs font-semibold transition ${
-                    agreement.status === "Accepted"
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  Accept
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => onStatusChange(agreement.id, "Rejected")}
-                  className={`flex-1 rounded-lg border px-4 py-2.5 text-xs font-semibold transition ${
-                    agreement.status === "Rejected"
-                      ? "border-red-200 bg-red-50 text-red-700"
-                      : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                  }`}
-                >
-                  Reject
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Actions */}
-          <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-5 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-slate-200 px-5 py-2.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
-            >
-              Close
-            </button>
-
-            <a
-              href={`https://wa.me/?text=${encodeURIComponent(
-                `Hello ${agreement.customer}, regarding agreement ${agreement.id} for ${agreement.item}.`,
-              )}`}
-              target="_blank"
-              rel="noreferrer"
-              className="rounded-lg bg-[#06151b] px-5 py-2.5 text-center text-xs font-semibold text-white transition hover:bg-[#0d252d]"
-            >
-              Contact Customer
-            </a>
+            ))}
           </div>
-        </div>
+        )}
       </div>
-    </div>
-  );
-}
-
-function Info({ label, value }) {
-  return (
-    <div>
-      <p className="text-[10px] uppercase tracking-wide text-slate-400">
-        {label}
-      </p>
-
-      <p className="mt-1 text-xs font-medium text-slate-700">{value}</p>
     </div>
   );
 }

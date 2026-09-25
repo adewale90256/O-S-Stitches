@@ -1,4 +1,4 @@
-import { NavLink, Link } from "react-router-dom";
+import { NavLink, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   BriefcaseBusiness,
@@ -9,6 +9,7 @@ import {
   LogOut,
   X,
 } from "lucide-react";
+import { logoutAdmin } from "../../lib/auth";
 
 const navigation = [
   {
@@ -44,6 +45,15 @@ const navigation = [
 ];
 
 function AdminSidebar({ mobileOpen, setMobileOpen }) {
+  const navigate = useNavigate();
+  const handleLogOut = async () => {
+    try {
+      await logoutAdmin();
+      navigate("/");
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
   return (
     <>
       {/* Mobile overlay */}
@@ -130,6 +140,7 @@ function AdminSidebar({ mobileOpen, setMobileOpen }) {
         <div className="border-t border-white/10 p-3">
           <button
             type="button"
+            onClick={handleLogOut}
             className="flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-[11px] font-medium text-white/50 transition hover:bg-white/5 hover:text-white"
           >
             <LogOut size={15} strokeWidth={1.8} />

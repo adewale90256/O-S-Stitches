@@ -11,6 +11,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import AdminLogin from "./pages/AdminLogin";
 import ProtectedRoute from "./admin/components/ProtectedRoute";
+import Agreement from "./pages/Agreement";
 
 import AdminLayout from "./admin/components/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
@@ -34,6 +35,7 @@ function PublicLayout() {
           <Route path="/catalogue/:slug" element={<CatalogueDetails />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/agreement/:token" element={<Agreement />} />
         </Routes>
       </main>
 

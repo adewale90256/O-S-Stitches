@@ -5,6 +5,7 @@ import { useParams } from "react-router-dom";
 import { getAgreementByToken, respondToAgreement } from "../lib/agreements";
 
 import brand from "../config/brand";
+import agreementTerms from "../data/agreementTerms";
 
 function Agreement() {
   const { token } = useParams();
@@ -17,31 +18,35 @@ function Agreement() {
   const [success, setSuccess] = useState("");
 
   useEffect(() => {
-    if (!token) {
-      setError("Invalid agreement link.");
-      setLoading(false);
-      return;
+    let cancelled = false;
+
+    async function loadAgreement() {
+      try {
+        const result = await getAgreementByToken(token);
+
+        if (!cancelled) {
+          setAgreement(result);
+          setError("");
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to load agreement:", error);
+
+        if (!cancelled) {
+          setError(error.message || "Unable to load this agreement.");
+          setLoading(false);
+        }
+      }
     }
 
-    loadAgreement();
+    if (token) {
+      loadAgreement();
+    }
+
+    return () => {
+      cancelled = true;
+    };
   }, [token]);
-
-  async function loadAgreement() {
-    try {
-      setLoading(true);
-      setError("");
-
-      const result = await getAgreementByToken(token);
-
-      setAgreement(result);
-    } catch (error) {
-      console.error("Failed to load agreement:", error);
-
-      setError(error.message || "Unable to load this agreement.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleResponse(status) {
     if (responding || !agreement) return;
@@ -106,6 +111,35 @@ function Agreement() {
     }
 
     return "bg-amber-50 text-amber-700 border-amber-200";
+  }
+
+  if (!token) {
+    return (
+      <div className="min-h-[70vh] bg-stone-50 px-4 py-16">
+        <div className="mx-auto max-w-xl">
+          <div className="border border-red-200 bg-white p-8 text-center shadow-sm">
+            <AlertCircle
+              size={40}
+              className="mx-auto text-red-400"
+              strokeWidth={1.5}
+            />
+
+            <h1 className="mt-5 text-xl font-semibold text-slate-900">
+              Agreement unavailable
+            </h1>
+
+            <p className="mt-3 text-sm leading-6 text-slate-500">
+              Invalid agreement link.
+            </p>
+
+            <p className="mt-5 text-xs text-slate-400">
+              Please contact O-S Stitches if you believe you received this link
+              in error.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (loading) {
@@ -279,35 +313,61 @@ function Agreement() {
                 className="text-[10px] font-semibold uppercase tracking-[0.18em]"
                 style={{ color: brand.colors.accent }}
               >
-                Terms & Conditions
+                {agreementTerms.title}
               </p>
 
               <div className="mt-3 border border-slate-200 p-5 sm:p-6">
-                <div className="space-y-4 text-sm leading-7 text-slate-600">
-                  <p>
-                    This agreement confirms the customer's order with O-S
-                    Stitches based on the details provided above.
+                <div className="space-y-7">
+                  <p className="text-sm leading-7 text-slate-600">
+                    {agreementTerms.intro}
                   </p>
 
-                  <p>
-                    A <strong>70% upfront payment</strong> is required before
-                    the customer's cloth is delivered for production.
-                  </p>
+                  {agreementTerms.terms.map((term) => (
+                    <div
+                      key={term.number}
+                      className="border-t border-slate-100 pt-6 first:border-t-0 first:pt-0"
+                    >
+                      <h3
+                        className="text-sm font-semibold tracking-wide"
+                        style={{ color: brand.colors.primary }}
+                      >
+                        {term.number}. {term.title}
+                      </h3>
 
-                  <p>
-                    The remaining <strong>30% balance</strong> is payable
-                    according to the agreed production and delivery arrangement.
-                  </p>
+                      <div className="mt-3 space-y-3">
+                        {term.paragraphs?.map((paragraph, index) => (
+                          <p
+                            key={index}
+                            className="text-sm leading-7 text-slate-600"
+                          >
+                            {paragraph}
+                          </p>
+                        ))}
 
-                  <p>
-                    The customer should review the order description, price, and
-                    payment structure carefully before accepting this agreement.
-                  </p>
+                        {term.bullets && (
+                          <ul className="space-y-2 pl-5 text-sm leading-7 text-slate-600">
+                            {term.bullets.map((bullet) => (
+                              <li key={bullet} className="list-disc">
+                                {bullet}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
 
-                  <p>
-                    Any changes to the agreed order should be discussed with O-S
-                    Stitches before production proceeds.
-                  </p>
+                        {term.closing && (
+                          <p className="text-sm leading-7 text-slate-600">
+                            {term.closing}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+
+                  <div className="border-t border-slate-200 pt-6">
+                    <p className="text-sm leading-7 text-slate-600">
+                      {agreementTerms.closing}
+                    </p>
+                  </div>
                 </div>
               </div>
             </section>

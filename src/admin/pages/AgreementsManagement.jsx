@@ -39,10 +39,6 @@ function AgreementsManagement() {
   });
 
   useEffect(() => {
-    loadAgreements();
-  }, []);
-
-  useEffect(() => {
     if (!notification.message) return;
 
     const timer = setTimeout(() => {
@@ -55,24 +51,36 @@ function AgreementsManagement() {
     return () => clearTimeout(timer);
   }, [notification]);
 
-  async function loadAgreements() {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    let cancelled = false;
 
-      const items = await getAgreements();
+    async function loadAgreements() {
+      try {
+        const items = await getAgreements();
 
-      setAgreements(items);
-    } catch (error) {
-      console.error("Failed to load agreements:", error);
+        if (!cancelled) {
+          setAgreements(items);
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error("Failed to load agreements:", error);
 
-      setNotification({
-        type: "error",
-        message: error.message || "Unable to load agreements.",
-      });
-    } finally {
-      setLoading(false);
+        if (!cancelled) {
+          setNotification({
+            type: "error",
+            message: error.message || "Unable to load agreements.",
+          });
+          setLoading(false);
+        }
+      }
     }
-  }
+
+    loadAgreements();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function handleChange(event) {
     const { name, value } = event.target;
@@ -501,7 +509,7 @@ function AgreementsManagement() {
                       <button
                         type="button"
                         onClick={() => copyAgreementLink(agreement)}
-                        className="inline-flex items-center gap-2 border border-slate-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                        className="inline-flex items-center gap-2 border border-slate-200 px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
                       >
                         {copiedId === agreement.id ? (
                           <Check size={14} />
@@ -517,7 +525,7 @@ function AgreementsManagement() {
                     type="button"
                     onClick={() => handleDelete(agreement.id)}
                     disabled={deletingId !== null}
-                    className="inline-flex items-center gap-2 border border-red-100 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.1em] text-red-500 transition hover:border-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    className="inline-flex items-center gap-2 border border-red-100 px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-red-500 transition hover:border-red-200 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     {deletingId === agreement.id ? (
                       <LoaderCircle size={14} className="animate-spin" />

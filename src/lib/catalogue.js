@@ -127,10 +127,22 @@ export async function updateCatalogueItem(
     body: formData,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Catalogue API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to update catalogue item.");
+    throw new Error(
+      result.message || `Unable to update catalogue item (${response.status}).`,
+    );
   }
 
   return result;
@@ -179,10 +191,22 @@ export async function createCatalogueItem(data, imageFile, galleryFiles) {
     body: formData,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Catalogue API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to create catalogue item.");
+    throw new Error(
+      result.message || `Unable to create catalogue item (${response.status}).`,
+    );
   }
 
   return result;
@@ -196,10 +220,22 @@ export async function deleteCatalogueItem(id) {
     headers,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Catalogue API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to delete catalogue item.");
+    throw new Error(
+      result.message || `Unable to create catalogue item (${response.status}).`,
+    );
   }
 
   return result;

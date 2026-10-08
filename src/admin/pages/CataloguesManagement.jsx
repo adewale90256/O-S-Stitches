@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import {
   Plus,
   Pencil,
@@ -12,6 +12,8 @@ import {
 import { getCatalogueItems, deleteCatalogueItem } from "../../lib/catalogue";
 
 function CataloguesManagement() {
+  const location = useLocation();
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -55,7 +57,7 @@ function CataloguesManagement() {
     }
 
     load();
-  }, []);
+  }, [location.pathname]);
 
   async function handleDelete(id) {
     const confirmed = window.confirm(

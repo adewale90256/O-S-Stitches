@@ -62,7 +62,7 @@ export async function createAgreement(data) {
 
   const text = await response.text();
 
-  let result = {};
+  let result;
 
   try {
     result = text ? JSON.parse(text) : {};

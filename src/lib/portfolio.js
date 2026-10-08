@@ -30,7 +30,7 @@ export async function getPortfolioItems() {
       _id,
       title,
       slug,
-      category,
+      category, 
       description,
       priceType,
       price,
@@ -78,10 +78,22 @@ export async function createPortfolioItem(data, imageFile) {
     body: formData,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Portfolio API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to create portfolio item.");
+    throw new Error(
+      result.message || `Unable to create portfolio item (${response.status}).`,
+    );
   }
 
   return result;
@@ -115,10 +127,22 @@ export async function updatePortfolioItem(id, data, imageFile) {
     body: formData,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Portfolio API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to update portfolio item.");
+    throw new Error(
+      result.message || `Unable to update portfolio item (${response.status}).`,
+    );
   }
 
   return result;
@@ -136,10 +160,22 @@ export async function deletePortfolioItem(id) {
     headers,
   });
 
-  const result = await response.json();
+  const text = await response.text();
+
+  let result;
+
+  try {
+    result = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `Portfolio API returned an invalid response (${response.status}).`,
+    );
+  }
 
   if (!response.ok) {
-    throw new Error(result.message || "Unable to delete portfolio item.");
+    throw new Error(
+      result.message || `Unable to delete portfolio item (${response.status}).`,
+    );
   }
 
   return result;

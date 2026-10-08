@@ -11,7 +11,7 @@ import {
   LoaderCircle,
   AlertCircle,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import { getPortfolioItems, deletePortfolioItem } from "../../lib/portfolio";
 
@@ -24,6 +24,8 @@ const categories = [
 ];
 
 function PortfolioManagement() {
+  const location = useLocation();
+
   const [portfolioItems, setPortfolioItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -64,7 +66,7 @@ function PortfolioManagement() {
     }
 
     load();
-  }, []);
+  }, [location.pathname]);
 
   // ==========================================================
   // FILTERING
@@ -406,9 +408,8 @@ function PortfolioManagement() {
 
       <div className="mt-6 rounded-lg border border-dashed border-[#d7ad55]/50 bg-[#d7ad55]/5 px-4 py-3">
         <p className="text-[9px] leading-relaxed text-slate-500">
-          <span className="font-semibold text-[#8c6825]">Firebase:</span>{" "}
-          Portfolio records are now loaded from Firestore. Image uploads will be
-          connected to Firebase Storage next.
+          <span className="font-semibold text-[#8c6825]">Sanity:</span>{" "}
+          Portfolio records and images are currently managed through Sanity CMS.
         </p>
       </div>
 

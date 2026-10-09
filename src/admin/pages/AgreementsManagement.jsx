@@ -8,16 +8,23 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import { createAgreement, deleteAgreement } from "../../lib/agreements";
+
 import {
-  createAgreement,
-  deleteAgreement,
-  getAgreements,
-} from "../../lib/agreements";
+  getCachedAgreements,
+  loadCachedAgreements,
+  refreshCachedAgreements,
+  setCachedAgreements,
+} from "../../lib/adminDataCache";
+
 import brand from "../../config/brand";
 
 function AgreementsManagement() {
-  const [agreements, setAgreements] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [agreements, setAgreements] = useState(
+    () => getCachedAgreements() ?? [],
+  );
+
+  const [loading, setLoading] = useState(() => getCachedAgreements() === null);
 
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -56,11 +63,10 @@ function AgreementsManagement() {
 
     async function loadAgreements() {
       try {
-        const items = await getAgreements();
+        const items = await loadCachedAgreements();
 
         if (!cancelled) {
           setAgreements(items);
-          setLoading(false);
         }
       } catch (error) {
         console.error("Failed to load agreements:", error);
@@ -70,15 +76,47 @@ function AgreementsManagement() {
             type: "error",
             message: error.message || "Unable to load agreements.",
           });
+        }
+      } finally {
+        if (!cancelled) {
           setLoading(false);
         }
       }
     }
 
+    async function refreshAgreements() {
+      try {
+        const items = await refreshCachedAgreements();
+
+        if (!cancelled) {
+          setAgreements(items);
+        }
+      } catch (error) {
+        // Preserve the existing list if a background refresh fails.
+        console.warn("Agreements background refresh failed:", error);
+      }
+    }
+
     loadAgreements();
+    refreshAgreements();
+
+    const intervalId = window.setInterval(refreshAgreements, 30_000);
+
+    window.addEventListener("focus", refreshAgreements);
+
+    function handleVisibilityChange() {
+      if (document.visibilityState === "visible") {
+        refreshAgreements();
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       cancelled = true;
+      window.clearInterval(intervalId);
+      window.removeEventListener("focus", refreshAgreements);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, []);
 
@@ -111,7 +149,18 @@ function AgreementsManagement() {
 
       const result = await createAgreement(form);
 
-      setAgreements((current) => [result.agreement, ...current]);
+      setAgreements((current) => {
+        const updatedAgreements = [
+          result.agreement,
+          ...current.filter(
+            (agreement) => agreement.id !== result.agreement.id,
+          ),
+        ];
+
+        setCachedAgreements(updatedAgreements);
+
+        return updatedAgreements;
+      });
 
       resetForm();
       setShowForm(false);
@@ -144,9 +193,15 @@ function AgreementsManagement() {
 
       await deleteAgreement(id);
 
-      setAgreements((current) =>
-        current.filter((agreement) => agreement.id !== id),
-      );
+      setAgreements((current) => {
+        const updatedAgreements = current.filter(
+          (agreement) => agreement.id !== id,
+        );
+
+        setCachedAgreements(updatedAgreements);
+
+        return updatedAgreements;
+      });
 
       setNotification({
         type: "success",

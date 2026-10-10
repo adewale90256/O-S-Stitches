@@ -233,7 +233,7 @@ function Contact() {
               </p>
 
               <a
-                href="https://wa.me/"
+                href="https://wa.me/2349047860608"
                 target="_blank"
                 rel="noreferrer"
                 className="mt-5 inline-flex items-center gap-2 rounded-md bg-[#25D366] px-5 py-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-white transition hover:opacity-90"

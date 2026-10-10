@@ -21,6 +21,7 @@ import AdminPlaceholder from "./admin/pages/AdminPlaceholder";
 import PortfolioForm from "./admin/pages/PortfolioForm";
 import CatalogueForm from "./admin/pages/CatalogueForm";
 import AgreementsManagement from "./admin/pages/AgreementsManagement";
+import Customers from "./admin/pages/Customers";
 
 function PublicLayout() {
   return (
@@ -71,7 +72,7 @@ function App() {
 
             <Route path="agreements" element={<AgreementsManagement />} />
 
-            <Route path="customers" element={<AdminPlaceholder />} />
+            <Route path="customers" element={<Customers />} />
 
             <Route path="settings" element={<AdminPlaceholder />} />
           </Route>

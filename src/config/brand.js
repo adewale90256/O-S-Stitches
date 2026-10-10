@@ -13,7 +13,7 @@ const brand = {
   },
 
   contact: {
-    whatsapp: "",
+    whatsapp: "2349047860608",
     phone: "",
     email: "",
   },

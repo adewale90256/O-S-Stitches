@@ -63,8 +63,10 @@ function Agreement() {
       setError("");
       setSuccess("");
 
+      // 1. Save the customer's decision first
       const result = await respondToAgreement(token, status);
 
+      // 2. Update the agreement on the page
       if (result.agreement) {
         setAgreement(result.agreement);
       } else {
@@ -74,11 +76,36 @@ function Agreement() {
         }));
       }
 
+      // 3. Show confirmation
       setSuccess(
         status === "accepted"
           ? "Agreement accepted successfully."
           : "Agreement rejected successfully.",
       );
+
+      // 4. Prepare the WhatsApp message
+      const whatsappNumber = (brand.contact.whatsapp || "").replace(/\D/g, "");
+
+      if (!whatsappNumber) {
+        setError(
+          "Your response was saved, but the WhatsApp contact has not been configured.",
+        );
+        return;
+      }
+
+      const message = `Hello, I have ${
+        status === "accepted" ? "accepted" : "rejected"
+      } the sewing agreement.
+
+Customer: ${agreement.customerName}
+Agreement: ${agreement.itemDescription}
+Amount: ₦${Number(agreement.price).toLocaleString("en-NG")}
+Status: ${status.toUpperCase()}`;
+
+      const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+
+      // 5. Open WhatsApp
+      window.location.href = whatsappUrl;
     } catch (error) {
       console.error("Failed to respond to agreement:", error);
 

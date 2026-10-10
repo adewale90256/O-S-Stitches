@@ -62,7 +62,7 @@ function Footer() {
               </a>
 
               <a
-                href="https://wa.me/"
+                href="https://wa.me/2349047860608"
                 target="_blank"
                 rel="noreferrer"
                 aria-label="WhatsApp"
@@ -121,7 +121,7 @@ function Footer() {
             <div className="mt-5 space-y-4">
               {/* WhatsApp */}
               <a
-                href="https://wa.me/"
+                href="https://wa.me/2349047860608"
                 target="_blank"
                 rel="noreferrer"
                 className="group flex items-start gap-3"
@@ -142,7 +142,7 @@ function Footer() {
 
               {/* Phone */}
               <a
-                href="tel:+2340000000000"
+                href="tel:+2349047860608"
                 className="group flex items-start gap-3"
               >
                 <Phone
@@ -154,7 +154,7 @@ function Footer() {
                 <div>
                   <p className="text-xs font-medium text-white">Phone</p>
                   <p className="mt-0.5 text-xs text-white/45 transition group-hover:text-white/70">
-                    +234 000 000 0000
+                    +2349047860608
                   </p>
                 </div>
               </a>
@@ -209,7 +209,7 @@ function Footer() {
             </div>
 
             <a
-              href="https://wa.me/"
+              href="https://wa.me/2349047860608"
               target="_blank"
               rel="noreferrer"
               className="inline-flex shrink-0 items-center gap-2 rounded-md bg-[#d7ad55] px-5 py-3 text-xs font-semibold text-[#06151b] transition hover:bg-[#e5c275]"

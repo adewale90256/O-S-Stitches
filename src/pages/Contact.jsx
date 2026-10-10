@@ -8,6 +8,7 @@ import {
   MessageCircle,
   Phone,
 } from "lucide-react";
+import { FaInstagram, FaFacebookF } from "react-icons/fa6";
 
 const initialForm = {
   name: "",
@@ -131,13 +132,7 @@ function Contact() {
                     Phone
                   </p>
 
-                  <p className="mt-1 text-sm text-slate-700">
-                    +234 000 000 0000
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-400">
-                    Temporary contact information
-                  </p>
+                  <p className="mt-1 text-sm text-slate-700">+2349047860608</p>
                 </div>
               </div>
 
@@ -158,10 +153,6 @@ function Contact() {
 
                   <p className="mt-1 text-sm text-slate-700">
                     info@osstitches.com
-                  </p>
-
-                  <p className="mt-1 text-xs text-slate-400">
-                    Temporary email address
                   </p>
                 </div>
               </div>
@@ -209,10 +200,6 @@ function Contact() {
                     <p>Saturday: 10:00 AM – 4:00 PM</p>
                     <p>Sunday: By appointment</p>
                   </div>
-
-                  <p className="mt-2 text-xs text-slate-400">
-                    Temporary business hours
-                  </p>
                 </div>
               </div>
             </div>
@@ -254,19 +241,23 @@ function Contact() {
               </span>
 
               <a
-                href="#"
+                href="https://www.instagram.com/YOUR_USERNAME/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-slate-500 transition hover:border-[#d7ad55] hover:text-[#b58a32]"
               >
-                IG
+                <FaInstagram size={16} />
               </a>
 
               <a
-                href="#"
+                href="https://www.facebook.com/YOUR_PAGE/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white text-xs font-semibold text-slate-500 transition hover:border-[#d7ad55] hover:text-[#b58a32]"
               >
-                f
+                <FaFacebookF size={15} />
               </a>
             </div>
           </div>
@@ -516,24 +507,6 @@ function Contact() {
               </p>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* ======================================================
-          FIREBASE DEVELOPMENT NOTE
-      ======================================================= */}
-      <section className="border-t border-[#d7ad55]/20 bg-[#06151b]">
-        <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8 lg:px-12">
-          <p className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#d7ad55]">
-            Development note
-          </p>
-
-          <p className="mt-3 max-w-3xl text-xs leading-6 text-white/50">
-            The enquiry form currently uses temporary local submission behavior.
-            During the backend stage, enquiries will be stored in Firebase
-            Firestore so the designer can view and manage them from the admin
-            dashboard.
-          </p>
         </div>
       </section>
     </div>

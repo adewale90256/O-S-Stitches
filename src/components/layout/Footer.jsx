@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { MessageCircle, Mail, Phone, MapPin, ArrowUpRight } from "lucide-react";
+import { FaInstagram, FaFacebookF } from "react-icons/fa6";
 import brand from "../../config/brand";
 
 const footerLinks = [
@@ -37,34 +38,36 @@ function Footer() {
                 </span>
               </div>
             </Link>
-
             <p className="mt-6 max-w-xs text-sm leading-6 text-white/55">
               Bespoke fashion designed around you. We create timeless, carefully
               crafted pieces that reflect your style and occasion.
             </p>
-
             {/* Social Icons */}
             <div className="mt-6 flex items-center gap-2">
               <a
-                href="#"
+                href="https://www.instagram.com/YOUR_USERNAME/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:border-[#d7ad55] hover:text-[#d7ad55]"
               >
-                IG
+                <FaInstagram size={16} />
               </a>
 
               <a
-                href="#"
+                href="https://www.facebook.com/YOUR_PAGE/"
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:border-[#d7ad55] hover:text-[#d7ad55]"
               >
-                Facebook
+                <FaFacebookF size={15} />
               </a>
 
               <a
                 href="https://wa.me/2349047860608"
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 aria-label="WhatsApp"
                 className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/60 transition hover:border-[#d7ad55] hover:text-[#d7ad55]"
               >
